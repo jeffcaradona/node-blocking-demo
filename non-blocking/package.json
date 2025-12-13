@@ -1,0 +1,27 @@
+{
+  "name": "non-blocking-demo",
+  "version": "1.0.0",
+  "description": "Demonstrates non-blocking operations and proper async patterns",
+  "main": "src/index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=25.0.0"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "inspect": "node --inspect src/index.js",
+    "inspect-brk": "node --inspect-brk src/index.js",
+    "prof": "node --prof src/index.js"
+  },
+  "keywords": [
+    "non-blocking",
+    "async",
+    "event-loop",
+    "performance"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "debug": "^4.3.4"
+  }
+}
