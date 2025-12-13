@@ -214,6 +214,11 @@ const routes = {
   }
 };
 
+// Add aliases for easier comparison testing with blocking server
+routes['/compute'] = routes['/compute-async'];
+routes['/crypto'] = routes['/crypto-async'];
+routes['/slow-sync'] = routes['/slow-async'];
+
 /**
  * Async request handler
  */

@@ -8,10 +8,14 @@ Both blocking and non-blocking applications are now complete and tested!
 
 ## 🚀 Running the Applications
 
-### Blocking Application (Port 3000)
+### Blocking Application (Port 3000 or 3002)
 ```bash
 cd blocking
 npm start
+
+# Note: If port 3000 is in use, it will use 3002
+# Or specify a different port:
+PORT=3002 npm start
 ```
 
 **What it demonstrates:**
@@ -44,57 +48,32 @@ PORT=3002 npm start
 
 ## 📍 Testing Endpoints
 
-### Blocking App (http://localhost:3000)
+Update endpoint URLs to match actual running ports
 
 ```bash
 # Health check
-curl http://localhost:3000/
-
-# Synchronous file read
-curl http://localhost:3000/slow-sync?iterations=3
-
-# CPU computation
-curl http://localhost:3000/compute?limit=1000000
-
-# Crypto operation
-curl http://localhost:3000/crypto?iterations=100000
-
-# Busy loop (blocks completely!)
-curl http://localhost:3000/busy-loop?duration=1000
-
-# JSON parsing
-curl http://localhost:3000/json-parse?size=10000
-
-# Multiple blocking operations
-curl http://localhost:3000/multiple
-```
-
-### Non-Blocking App (http://localhost:3002)
-
-```bash
-# Health check
-curl http://localhost:3002/
+curl http://localhost:3001/
 
 # Async file read
-curl http://localhost:3002/slow-async?iterations=3
+curl http://localhost:3001/slow-async?iterations=3
 
 # Async chunked computation
-curl http://localhost:3002/compute-async?limit=1000000
+curl http://localhost:3001/compute-async?limit=1000000
 
 # Async crypto
-curl http://localhost:3002/crypto-async?iterations=100000
+curl http://localhost:3001/crypto-async?iterations=100000
 
 # Async delay (no blocking!)
-curl http://localhost:3002/delay?duration=1000
+curl http://localhost:3001/delay?duration=1000
 
 # Stream processing
-curl http://localhost:3002/stream-process?chunks=100
+curl http://localhost:3001/stream-process?chunks=100
 
 # Parallel operations
-curl http://localhost:3002/parallel
+curl http://localhost:3001/parallel
 
 # Async JSON processing
-curl http://localhost:3002/json-async?size=10000
+curl http://localhost:3001/json-async?size=10000
 ```
 
 ---
@@ -108,7 +87,7 @@ curl http://localhost:3002/json-async?size=10000
 $jobs = 1..5 | ForEach-Object {
     Start-Job -ScriptBlock {
         Measure-Command {
-            Invoke-WebRequest -Uri "http://localhost:3000/compute?limit=500000" -UseBasicParsing
+            Invoke-WebRequest -Uri "http://localhost:3002/compute?limit=500000" -UseBasicParsing
         }
     }
 }
@@ -119,7 +98,7 @@ $jobs | Remove-Job
 $jobs = 1..5 | ForEach-Object {
     Start-Job -ScriptBlock {
         Measure-Command {
-            Invoke-WebRequest -Uri "http://localhost:3002/compute-async?limit=500000" -UseBasicParsing
+            Invoke-WebRequest -Uri "http://localhost:3001/compute-async?limit=500000" -UseBasicParsing
         }
     }
 }
@@ -127,22 +106,53 @@ $jobs | Wait-Job | Receive-Job | Select TotalMilliseconds
 $jobs | Remove-Job
 ```
 
-### Using autocannon (if installed)
+### Using autocannon (Recommended)
 
 ```bash
-# Install globally
+# Install globally (if not already installed)
 npm install -g autocannon
 
-# Test blocking app
-autocannon http://localhost:3000/compute?limit=500000 -d 10 -c 5
+# Test blocking app - 5 connections
+autocannon http://localhost:3002/compute?limit=500000 -d 10 -c 5
 
-# Test non-blocking app
-autocannon http://localhost:3002/compute-async?limit=500000 -d 10 -c 5
+# Test non-blocking app - 5 connections
+autocannon http://localhost:3001/compute-async?limit=500000 -d 10 -c 5
+
+# Test with higher concurrency - 10 connections
+autocannon http://localhost:3002/compute?limit=500000 -d 10 -c 10
+autocannon http://localhost:3001/compute-async?limit=500000 -d 10 -c 10
 ```
 
-**Expected Results:**
-- **Blocking:** High latency, requests queue up and block each other
-- **Non-Blocking:** Lower latency, concurrent requests handled smoothly
+**Actual Test Results (December 13, 2025):**
+
+#### 5 Concurrent Connections:
+- **Blocking (3002):**
+  - Avg Latency: **59.85ms**
+  - Throughput: **83 req/sec**
+  - Total: **835 requests** in 10s
+
+- **Non-Blocking (3001):**
+  - Avg Latency: **25.61ms** (57% faster ⚡)
+  - Throughput: **192 req/sec** (131% more 🚀)
+  - Total: **2,000 requests** in 10s
+
+#### 10 Concurrent Connections:
+- **Blocking (3002):**
+  - Avg Latency: **121.39ms** (DOUBLED! 🔴)
+  - Throughput: **82 req/sec** (no improvement)
+  - Total: **829 requests** in 10s
+
+- **Non-Blocking (3001):**
+  - Avg Latency: **48.38ms** (graceful scaling 🟢)
+  - Throughput: **205 req/sec** (scales up!)
+  - Total: **2,000 requests** in 10s
+
+**Key Findings:**
+- **Non-blocking is 2.4x faster** in throughput
+- **Blocking latency DOUBLES** with higher concurrency (60ms → 121ms)
+- **Non-blocking latency scales gracefully** (26ms → 48ms)
+- **Blocking throughput doesn't scale** - stuck at ~82 req/sec
+- **Non-blocking maintains responsiveness** under load
 
 ---
 
@@ -330,6 +340,172 @@ non-blocking/
 
 ---
 
+## 🧪 Complete autocannon Testing Guide
+
+### Step-by-Step Testing Process
+
+**1. Start Both Servers**
+
+```bash
+# Terminal 1: Start blocking server
+cd blocking
+npm start
+# Note the port (likely 3002)
+
+# Terminal 2: Start non-blocking server
+cd non-blocking
+npm start
+# Note the port (likely 3001)
+```
+
+**2. Basic Health Check**
+
+```bash
+# Quick test to confirm both are running
+curl http://localhost:3002/
+curl http://localhost:3001/
+```
+
+**3. Run autocannon Tests**
+
+```bash
+# Low concurrency test (5 connections)
+autocannon http://localhost:3002/compute?limit=500000 -d 10 -c 5
+autocannon http://localhost:3001/compute-async?limit=500000 -d 10 -c 5
+
+# High concurrency test (10 connections)
+autocannon http://localhost:3002/compute?limit=500000 -d 10 -c 10
+autocannon http://localhost:3001/compute-async?limit=500000 -d 10 -c 10
+
+# Very high concurrency (20 connections) - really see the difference!
+autocannon http://localhost:3002/compute?limit=500000 -d 10 -c 20
+autocannon http://localhost:3001/compute-async?limit=500000 -d 10 -c 20
+```
+
+### Understanding autocannon Output
+
+```
+┌─────────┬───────┬───────┬───────┬───────┬──────────┬─────────┬───────┐
+│ Stat    │ 2.5%  │ 50%   │ 97.5% │ 99%   │ Avg      │ Stdev   │ Max   │
+├─────────┼───────┼───────┼───────┼───────┼──────────┼─────────┼───────┤
+│ Latency │ 23 ms │ 25 ms │ 36 ms │ 37 ms │ 25.61 ms │ 2.96 ms │ 43 ms │
+└─────────┴───────┴───────┴───────┴───────┴──────────┴─────────┴───────┘
+```
+
+- **50% (Median):** Half of requests completed faster than this
+- **99%:** 99% of requests completed faster (important for user experience)
+- **Avg:** Average latency
+- **Stdev:** Standard deviation (consistency indicator)
+
+```
+┌───────────┬─────────┬─────────┬─────────┬─────────┬─────────┬─────────┬─────────┐
+│ Stat      │ 1%      │ 2.5%    │ 50%     │ 97.5%   │ Avg     │ Stdev   │ Min     │
+├───────────┼─────────┼─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤
+│ Req/Sec   │ 166     │ 166     │ 195     │ 206     │ 192.1   │ 13.17   │ 166     │
+└───────────┴─────────┴─────────┴─────────┴─────────┴─────────┴─────────┴─────────┘
+```
+
+- **Avg Req/Sec:** Throughput - higher is better
+- **This is the key metric** for comparing blocking vs non-blocking
+
+### Testing Different Endpoints
+
+```bash
+# Test file I/O
+autocannon http://localhost:3002/slow-sync?iterations=3 -d 10 -c 5
+autocannon http://localhost:3001/slow-async?iterations=3 -d 10 -c 5
+
+# Test crypto operations
+autocannon http://localhost:3002/crypto?iterations=50000 -d 10 -c 5
+autocannon http://localhost:3001/crypto-async?iterations=50000 -d 10 -c 5
+
+# Test busy loop (worst case for blocking!)
+autocannon http://localhost:3002/busy-loop?duration=500 -d 10 -c 5
+autocannon http://localhost:3001/delay?duration=500 -d 10 -c 5
+
+# Test parallel operations (should show biggest difference)
+autocannon http://localhost:3002/multiple -d 10 -c 5
+autocannon http://localhost:3001/parallel -d 10 -c 5
+```
+
+### Advanced autocannon Options
+
+```bash
+# Longer duration test
+autocannon http://localhost:3001/compute-async -d 30 -c 10
+
+# More connections (stress test)
+autocannon http://localhost:3001/compute-async -d 10 -c 50
+
+# Custom timeout
+autocannon http://localhost:3002/compute -d 10 -c 5 -t 30
+
+# Pipeline requests (HTTP pipelining)
+autocannon http://localhost:3001/compute-async -d 10 -c 5 -p 10
+
+# JSON output for analysis
+autocannon http://localhost:3001/compute-async -d 10 -c 5 --json > results.json
+
+# Show detailed percentiles
+autocannon http://localhost:3001/compute-async -d 10 -c 5 --renderLatencyTable
+```
+
+### Quick Comparison Script (PowerShell)
+
+```powershell
+# Save as test-comparison.ps1
+Write-Host "`nTesting Blocking Server (Port 3002)..." -ForegroundColor Red
+autocannon http://localhost:3002/compute?limit=500000 -d 10 -c 5
+
+Write-Host "`nTesting Non-Blocking Server (Port 3001)..." -ForegroundColor Green
+autocannon http://localhost:3001/compute-async?limit=500000 -d 10 -c 5
+
+Write-Host "`n=== High Concurrency Test ===" -ForegroundColor Yellow
+Write-Host "`nTesting Blocking Server (Port 3002) - 10 connections..." -ForegroundColor Red
+autocannon http://localhost:3002/compute?limit=500000 -d 10 -c 10
+
+Write-Host "`nTesting Non-Blocking Server (Port 3001) - 10 connections..." -ForegroundColor Green
+autocannon http://localhost:3001/compute-async?limit=500000 -d 10 -c 10
+```
+
+### What to Look For
+
+**🔴 Blocking Server:**
+- Latency increases significantly with concurrency
+- Throughput stays low regardless of demand
+- High standard deviation (inconsistent)
+- Event loop warnings in console
+- Total requests stays low
+
+**🟢 Non-Blocking Server:**
+- Latency increases gradually
+- Throughput scales with concurrency
+- Lower standard deviation (consistent)
+- Few/no event loop warnings
+- Total requests much higher
+
+### Troubleshooting autocannon Tests
+
+**Error: "ECONNREFUSED"**
+- Server isn't running on that port
+- Check `Get-NetTCPConnection -State Listen` to find actual ports
+
+**Error: "Too many open files"**
+- Lower the connection count (`-c` parameter)
+- Or increase system limits
+
+**All requests showing 0ms latency**
+- Server crashed or port is wrong
+- Check server console for errors
+
+---
+
 **Phase 2 Status: ✅ COMPLETE**
+
+**Verified with autocannon load testing showing:**
+- 2.4x better throughput on non-blocking
+- 57-60% lower latency on non-blocking  
+- Blocking latency doubles with concurrency
+- Non-blocking scales gracefully
 
 Ready for Phase 3: Integration & Testing with profiling tools!
