@@ -11,7 +11,13 @@
     "start": "node src/index.js",
     "inspect": "node --inspect src/index.js",
     "inspect-brk": "node --inspect-brk src/index.js",
-    "prof": "node --prof src/index.js"
+    "prof": "node --prof src/index.js",
+    "clinic:doctor": "clinic doctor -- node src/index.js",
+    "clinic:flame": "clinic flame -- node src/index.js",
+    "0x": "0x -- node src/index.js",
+    "load-test": "autocannon -c 10 -d 30 http://localhost:3000",
+    "baseline": "autocannon -c 10 -d 30 -R -M http://localhost:3000",
+    "compare": "autocannon -c 10 -d 30 -M http://localhost:3000"
   },
   "keywords": [
     "blocking",

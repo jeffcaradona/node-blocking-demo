@@ -70,6 +70,60 @@ Build a complete monorepo demonstrating Node.js event loop blocking detection an
 - Logging setup
 - Performance metrics collector
 
+### 2.4 Zalgo Anti-Pattern Application (The Dark Pony Lord)
+
+**Purpose:** Demonstrate the infamous "Zalgo" anti-pattern - when callbacks execute sometimes synchronously, sometimes asynchronously, making code impossible to reason about.
+
+**Files to create:**
+- `zalgo/src/index.js` - Main entry point and server startup
+- `zalgo/src/server.js` - HTTP server with zalgo-pattern routes
+- `zalgo/src/operations.js` - Zalgo anti-pattern demonstrations
+
+**Anti-Pattern Demonstrations:**
+
+1. **Inconsistent Cache Pattern** (Most Common Zalgo)
+   - Returns cached data synchronously
+   - Fetches fresh data asynchronously
+   - Endpoint: `GET /cache` - Shows unpredictable timing
+   - Problem: Caller code can't know when data arrives
+
+2. **Promise.resolve() with Callbacks**
+   - Mixes Promise and callback conventions
+   - Sometimes resolves immediately, sometimes later
+   - Endpoint: `GET /promise-callback` - Confusing control flow
+   - Problem: Breaks callback contract
+
+3. **Conditional Deferral**
+   - Uses `setImmediate()` conditionally based on state
+   - Sometimes defers, sometimes doesn't
+   - Endpoint: `GET /conditional-defer` - Unpredictable execution
+   - Problem: Race conditions and event loop unpredictability
+
+4. **Mixed Timing Pattern**
+   - Synchronous validation + asynchronous processing
+   - Execution timing depends on data state
+   - Endpoint: `GET /mixed-timing` - Difficult to debug
+   - Problem: Cascading failures in dependent code
+
+5. **Comparison: Fixed Version**
+   - Shows how to properly defer everything
+   - Uses `setImmediate()` consistently
+   - Endpoint: `GET /fixed-pattern` - Predictable timing
+   - Problem: Teaches the solution
+
+**Features:**
+- Same EventLoopMonitor as blocking/non-blocking
+- Request logging showing actual vs. expected execution order
+- Unpredictability metrics (execution time variance)
+- Comparison output showing problems vs. solutions
+
+**Expected Behavior:**
+- Requests succeed but timing is unpredictable
+- Race conditions visible under load
+- Promises resolve in unexpected order
+- Callback order breaks expectations
+- Fixed version maintains predictability
+
 ---
 
 ## Phase 3: Integration & Tooling
