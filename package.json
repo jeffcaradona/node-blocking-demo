@@ -1,14 +1,15 @@
 {
   "name": "node-blocking-demo",
   "version": "1.0.0",
-  "description": "Monorepo demonstrating Node.js 25.x event loop blocking detection and diagnosis",
+  "description": "Monorepo demonstrating Node.js event loop blocking detection and diagnosis",
+  "type": "module",
   "private": true,
   "workspaces": [
     "blocking",
     "non-blocking"
   ],
   "engines": {
-    "node": ">=25.0.0",
+    "node": ">=22.0.0",
     "npm": ">=10.0.0"
   },
   "scripts": {
