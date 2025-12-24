@@ -4,6 +4,7 @@
   "description": "Demonstrates blocking operations and event loop bottlenecks",
   "main": "src/index.js",
   "type": "module",
+  "private": true,
   "engines": {
     "node": ">=22.0.0"
   },

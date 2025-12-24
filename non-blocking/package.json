@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Demonstrates non-blocking operations and proper async patterns",
   "main": "src/index.js",
+  "private": true,
   "type": "module",
   "engines": {
     "node": ">=22.0.0"

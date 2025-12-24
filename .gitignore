@@ -137,3 +137,10 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+
+# Clinic local directory
+.clinic/ 
+
+# 0x profiling output
+**.0x/
